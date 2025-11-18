@@ -11,6 +11,11 @@ import {
 import Link from "next/link";
 
 import type { EventRecord } from "@/types/events";
+import {
+  convertSriLankaInputToUtc,
+  formatSriLankaDateTime,
+  toSriLankaInputValue,
+} from "@/lib/timezone";
 
 type FormState = {
   event_name: string;
@@ -32,35 +37,12 @@ const initialFormState: FormState = {
 };
 
 const fieldClasses =
-  "w-full rounded-xl border border-slate-200 bg-white/90 px-4 py-3 text-[var(--foreground)] shadow-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 placeholder:text-slate-400";
-
-const formatDate = (isoString: string) =>
-  new Date(isoString).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-
-const toLocalDatetimeValue = (isoString: string) => {
-  const date = new Date(isoString);
-  const pad = (value: number) => value.toString().padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-};
+  "w-full rounded-2xl border border-slate-700/70 bg-slate-900/60 px-4 py-3 text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600/40 placeholder:text-slate-500";
 
 const formatDuration = (seconds: number) => {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, "0")}`;
-};
-
-const toIsoString = (value: string, label: string) => {
-  if (!value) {
-    throw new Error(`${label} is required.`);
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    throw new Error(`${label} must be a valid date.`);
-  }
-  return date.toISOString();
 };
 
 const ManageEventsPage = () => {
@@ -109,8 +91,8 @@ const ManageEventsPage = () => {
     setFormValues({
       event_name: event.event_name,
       artist_name: event.artist_name,
-      start_time_utc: toLocalDatetimeValue(event.start_time_utc),
-      end_time_utc: toLocalDatetimeValue(event.end_time_utc),
+      start_time_utc: toSriLankaInputValue(event.start_time_utc),
+      end_time_utc: toSriLankaInputValue(event.end_time_utc),
     });
     setStatus({
       type: "info",
@@ -141,11 +123,14 @@ const ManageEventsPage = () => {
       const payload = {
         event_name: formValues.event_name.trim(),
         artist_name: formValues.artist_name.trim(),
-        start_time_utc: toIsoString(
+        start_time_utc: convertSriLankaInputToUtc(
           formValues.start_time_utc,
           "Start time",
         ),
-        end_time_utc: toIsoString(formValues.end_time_utc, "End time"),
+        end_time_utc: convertSriLankaInputToUtc(
+          formValues.end_time_utc,
+          "End time",
+        ),
       };
 
       if (!payload.event_name || !payload.artist_name) {
@@ -318,37 +303,45 @@ const ManageEventsPage = () => {
   }, [events]);
 
   return (
-    <main className="mx-auto flex min-h-[90vh] max-w-6xl flex-col gap-6 px-6 py-10">
-      <div className="rounded-3xl border border-slate-200/80 bg-white/95 p-8 shadow-2xl shadow-slate-200 backdrop-blur">
+    <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-6 py-12 text-slate-100">
+      <div className="rounded-[32px] border border-slate-800/70 bg-[var(--panel)] p-8 shadow-[0_0_80px_rgba(79,70,229,0.25)] backdrop-blur">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">
               Current Events
             </p>
-            <h1 className="mt-3 text-3xl font-semibold text-slate-900 sm:text-4xl">
+            <h1 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">
               Review, edit, and prune scheduled music events.
             </h1>
-            <p className="mt-3 text-base text-slate-600">
+            <p className="mt-3 text-base text-slate-400">
               Use the actions below to review JSON-backed events, play tracks,
               edit metadata, or remove outdated entries.
             </p>
           </div>
-          <Link
-            href="/upload-event"
-            className="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-500"
-          >
-            Create a new event
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center rounded-2xl border border-slate-700/70 bg-slate-900/60 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-indigo-500/60 hover:text-white"
+            >
+              ← Home
+            </Link>
+            <Link
+              href="/upload-event"
+              className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-indigo-500 via-violet-600 to-fuchsia-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_35px_rgba(99,102,241,0.35)] transition hover:scale-[1.01]"
+            >
+              Create a new event
+            </Link>
+          </div>
         </div>
 
         {status ? (
           <p
             className={`mt-6 rounded-2xl border px-4 py-3 text-sm font-medium ${
               status.type === "success"
-                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
                 : status.type === "error"
-                  ? "border-rose-200 bg-rose-50 text-rose-700"
-                  : "border-sky-200 bg-sky-50 text-sky-700"
+                  ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
+                  : "border-sky-500/40 bg-sky-500/10 text-sky-200"
             }`}
           >
             {status.text}
@@ -357,21 +350,21 @@ const ManageEventsPage = () => {
 
         <div className="mt-6 flex flex-wrap gap-3">
           <button
-            className="rounded-2xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-2xl border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-indigo-500/70 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
             onClick={fetchEvents}
             disabled={isLoading}
           >
             Refresh list
           </button>
           <button
-            className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-70"
+            className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-200 transition hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-70"
             onClick={deleteExpiredEvents}
             disabled={isLoading}
           >
             Delete expired
           </button>
           <button
-            className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-800 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-70"
+            className="rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-70"
             onClick={deleteAllEvents}
             disabled={isLoading || events.length === 0}
           >
@@ -381,12 +374,12 @@ const ManageEventsPage = () => {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr,1fr]">
-        <section className="rounded-3xl border border-slate-200/80 bg-white/95 p-6 shadow-xl shadow-slate-200">
+        <section className="rounded-[32px] border border-slate-800/70 bg-[var(--panel)] p-6 shadow-[0_0_50px_rgba(2,6,23,0.6)]">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-slate-900">
+            <h2 className="text-xl font-semibold text-white">
               Event queue
             </h2>
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-slate-400">
               {isLoading
                 ? "Loading..."
                 : `${events.length} event${events.length === 1 ? "" : "s"}`}
@@ -394,11 +387,11 @@ const ManageEventsPage = () => {
           </div>
 
           {isLoading ? (
-            <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+            <p className="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/50 px-4 py-6 text-sm text-slate-400">
               Loading events...
             </p>
           ) : events.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+            <p className="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/50 px-4 py-6 text-sm text-slate-400">
               No events saved yet. Head over to the upload form and create one.
             </p>
           ) : (
@@ -406,33 +399,33 @@ const ManageEventsPage = () => {
               {events.map((eventRecord) => (
                 <article
                   key={eventRecord.event_id}
-                  className={`rounded-2xl border p-4 shadow-sm ${
+                  className={`rounded-2xl border p-4 shadow-[0_0_35px_rgba(2,6,23,0.55)] ${
                     expiredEventIds.has(eventRecord.event_id)
-                      ? "border-amber-200 bg-amber-50/60"
-                      : "border-slate-200 bg-white"
+                      ? "border-amber-500/40 bg-amber-500/5"
+                      : "border-slate-700/70 bg-slate-900/60"
                   }`}
                 >
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <h3 className="text-lg font-semibold text-slate-900">
+                      <h3 className="text-lg font-semibold text-white">
                         {eventRecord.event_name}
                       </h3>
-                      <p className="text-sm text-slate-500">
+                      <p className="text-sm text-slate-400">
                         {eventRecord.artist_name}
                       </p>
-                      <p className="text-sm text-slate-500">
-                        {formatDate(eventRecord.start_time_utc)} &rarr;{" "}
-                        {formatDate(eventRecord.end_time_utc)}
+                      <p className="text-sm text-slate-400">
+                        {formatSriLankaDateTime(eventRecord.start_time_utc)} &rarr;{" "}
+                        {formatSriLankaDateTime(eventRecord.end_time_utc)}
                       </p>
                       {expiredEventIds.has(eventRecord.event_id) ? (
-                        <span className="mt-2 inline-flex items-center rounded-full bg-amber-200/60 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-900">
+                        <span className="mt-2 inline-flex items-center rounded-full border border-amber-500/50 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-200">
                           Expired
                         </span>
                       ) : null}
                     </div>
                     <div className="flex gap-2">
                       <button
-                        className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-xl border border-slate-600/70 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-200 transition hover:border-indigo-500/70 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={() => startEditing(eventRecord)}
                         disabled={isLoading}
                       >
@@ -441,7 +434,7 @@ const ManageEventsPage = () => {
                           : "Edit"}
                       </button>
                       <button
-                        className="rounded-xl border border-rose-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-xl border border-rose-500/40 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-rose-200 transition hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={() => deleteEvent(eventRecord.event_id)}
                         disabled={isLoading}
                       >
@@ -454,18 +447,18 @@ const ManageEventsPage = () => {
                     {eventRecord.tracks.map((track) => (
                       <div
                         key={track.track_id}
-                        className="rounded-2xl border border-slate-100 bg-slate-50/80 p-3"
+                        className="rounded-2xl border border-slate-700/70 bg-slate-900/60 p-3"
                       >
                         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                           <div>
-                            <p className="text-sm font-semibold text-slate-800">
+                            <p className="text-sm font-semibold text-white">
                               {track.track_name}
                             </p>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-slate-400">
                               {track.track_url}
                             </p>
                           </div>
-                          <span className="text-xs font-semibold text-slate-600">
+                          <span className="text-xs font-semibold text-slate-300">
                             {formatDuration(track.track_duration_seconds)}
                           </span>
                         </div>
@@ -486,19 +479,19 @@ const ManageEventsPage = () => {
           )}
         </section>
 
-        <section className="rounded-3xl border border-slate-200/80 bg-white/95 p-6 shadow-xl shadow-slate-200">
-          <h2 className="text-xl font-semibold text-slate-900">
+        <section className="rounded-[32px] border border-slate-800/70 bg-[var(--panel)] p-6 shadow-[0_0_50px_rgba(2,6,23,0.6)]">
+          <h2 className="text-xl font-semibold text-white">
             {editingId ? "Edit event" : "Select an event to edit"}
           </h2>
-          <p className="mt-2 text-sm text-slate-500">
-            Choose an event from the list to update its metadata. Dates are in
-            your local timezone and are persisted as UTC.
+          <p className="mt-2 text-sm text-slate-400">
+            Choose an event from the list to update its metadata. Times are
+            entered in Sri Lanka time and persisted as UTC.
           </p>
 
           {editingId ? (
             <form className="mt-6 space-y-4" onSubmit={handleUpdateEvent}>
               <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-700">
+                <label className="mb-1 block text-sm font-semibold text-slate-300">
                   Event name
                 </label>
                 <input
@@ -511,7 +504,7 @@ const ManageEventsPage = () => {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-700">
+                <label className="mb-1 block text-sm font-semibold text-slate-300">
                   Artist / DJ name
                 </label>
                 <input
@@ -524,8 +517,8 @@ const ManageEventsPage = () => {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-700">
-                  Start time (local)
+                <label className="mb-1 block text-sm font-semibold text-slate-300">
+                  Start time (Sri Lanka time)
                 </label>
                 <input
                   className={fieldClasses}
@@ -537,8 +530,8 @@ const ManageEventsPage = () => {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-semibold text-slate-700">
-                  End time (local)
+                <label className="mb-1 block text-sm font-semibold text-slate-300">
+                  End time (Sri Lanka time)
                 </label>
                 <input
                   className={fieldClasses}
@@ -552,14 +545,14 @@ const ManageEventsPage = () => {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   type="submit"
-                  className="flex-1 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-400"
+                  className="flex-1 rounded-2xl bg-gradient-to-r from-indigo-500 via-violet-600 to-fuchsia-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_10px_35px_rgba(99,102,241,0.35)] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:bg-slate-500"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Saving..." : "Save changes"}
                 </button>
                 <button
                   type="button"
-                  className="flex-1 rounded-2xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+                  className="flex-1 rounded-2xl border border-slate-700/70 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-indigo-500/60 hover:text-white"
                   onClick={cancelEditing}
                   disabled={isSubmitting}
                 >
@@ -568,7 +561,7 @@ const ManageEventsPage = () => {
               </div>
             </form>
           ) : (
-            <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+            <div className="mt-6 rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/50 px-4 py-6 text-sm text-slate-400">
               Select an event from the left-hand column to populate the editing
               form.
             </div>

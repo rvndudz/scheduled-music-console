@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import TrackPreview from "../components/TrackPreview";
+import { convertSriLankaInputToUtc } from "@/lib/timezone";
 
 const initialFormState = {
   event_name: "",
@@ -11,7 +13,7 @@ const initialFormState = {
 };
 
 const fieldClasses =
-  "w-full rounded-xl border border-slate-200 bg-white/90 px-4 py-3 text-[var(--foreground)] shadow-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 placeholder:text-slate-400";
+  "w-full rounded-2xl border border-slate-700/70 bg-slate-900/60 px-4 py-3 text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600/40 placeholder:text-slate-500";
 
 export default function UploadEventPage() {
   const [formValues, setFormValues] = useState(initialFormState);
@@ -91,24 +93,19 @@ export default function UploadEventPage() {
       return;
     }
 
-    const toIso = (value, label) => {
-      if (!value) {
-        throw new Error(`${label} is required.`);
-      }
-      const parsed = new Date(value);
-      if (Number.isNaN(parsed.getTime())) {
-        throw new Error(`${label} must be a valid date.`);
-      }
-      return parsed.toISOString();
-    };
-
     let payload;
     try {
       payload = {
         event_name: formValues.event_name.trim(),
         artist_name: formValues.artist_name.trim(),
-        start_time_utc: toIso(formValues.start_time_utc, "Start time"),
-        end_time_utc: toIso(formValues.end_time_utc, "End time"),
+        start_time_utc: convertSriLankaInputToUtc(
+          formValues.start_time_utc,
+          "Start time",
+        ),
+        end_time_utc: convertSriLankaInputToUtc(
+          formValues.end_time_utc,
+          "End time",
+        ),
         tracks,
       };
     } catch (error) {
@@ -169,31 +166,45 @@ export default function UploadEventPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-8 px-6 py-10 text-slate-800">
-      <div className="rounded-3xl border border-slate-200/80 bg-white/95 p-8 shadow-2xl shadow-slate-200 backdrop-blur">
+    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-6 py-12 text-slate-100">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-indigo-500/60 hover:text-white"
+        >
+          ← Home
+        </Link>
+        <Link
+          href="/events"
+          className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-indigo-500/60 hover:text-white"
+        >
+          View current events
+        </Link>
+      </div>
+      <div className="rounded-[32px] border border-slate-800/70 bg-[var(--panel)] p-10 shadow-[0_0_80px_rgba(79,70,229,0.25)] backdrop-blur">
         <header className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">
             Upload Event
           </p>
-          <h1 className="mt-3 text-3xl font-semibold text-slate-900">
+          <h1 className="mt-3 text-3xl font-semibold text-white">
             Create a DJ event and upload MP3 tracks
           </h1>
-          <p className="mt-3 text-base text-slate-600">
-            Each track is sent to <span className="font-mono">/api/upload-track</span>{" "}
+          <p className="mt-3 text-base text-slate-400">
+            Each track is sent to <span className="font-mono text-indigo-200">/api/upload-track</span>{" "}
             for metadata extraction and Cloudflare R2 storage. When you submit
             the form the compiled event is appended to{" "}
-            <span className="font-mono">data/events.json</span>.
+            <span className="font-mono text-indigo-200">data/events.json</span>.
           </p>
         </header>
 
         {status ? (
           <div
-            className={`mb-6 rounded-xl border px-4 py-3 text-sm font-medium ${
+            className={`mb-6 rounded-2xl border px-4 py-3 text-sm font-medium ${
               status.type === "error"
-                ? "border-red-200 bg-red-100 text-red-900"
+                ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
                 : status.type === "success"
-                  ? "border-green-200 bg-green-100 text-green-900"
-                  : "border-slate-200 bg-slate-100 text-slate-800"
+                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
+                  : "border-sky-500/40 bg-sky-500/10 text-sky-200"
             }`}
           >
             {status.text}
@@ -203,7 +214,7 @@ export default function UploadEventPage() {
         <form className="space-y-8" onSubmit={submitEvent}>
           <section className="grid gap-4 md:grid-cols-2">
             <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
+            <label className="mb-1 block text-sm font-semibold text-slate-300">
               Event name
             </label>
               <input
@@ -217,7 +228,7 @@ export default function UploadEventPage() {
               />
             </div>
             <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
+            <label className="mb-1 block text-sm font-semibold text-slate-300">
               Artist / DJ name
             </label>
               <input
@@ -231,8 +242,8 @@ export default function UploadEventPage() {
               />
             </div>
             <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
-              Start time (UTC)
+            <label className="mb-1 block text-sm font-semibold text-slate-300">
+              Start time (Sri Lanka time)
             </label>
               <input
                 className={fieldClasses}
@@ -244,8 +255,8 @@ export default function UploadEventPage() {
               />
             </div>
             <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
-              End time (UTC)
+            <label className="mb-1 block text-sm font-semibold text-slate-300">
+              End time (Sri Lanka time)
             </label>
               <input
                 className={fieldClasses}
@@ -259,18 +270,18 @@ export default function UploadEventPage() {
           </section>
 
           <section>
-            <label className="mb-1 block text-sm font-semibold text-slate-700">
+            <label className="mb-1 block text-sm font-semibold text-slate-300">
               Upload MP3 tracks
             </label>
             <input
               type="file"
               accept=".mp3,audio/mpeg"
               multiple
-              className="block w-full cursor-pointer rounded-2xl border border-dashed border-slate-300 bg-slate-50/80 px-4 py-6 text-center text-base font-medium text-slate-600 transition hover:border-indigo-300 hover:text-slate-900"
+              className="block w-full cursor-pointer rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/60 px-4 py-6 text-center text-base font-medium text-slate-200 transition hover:border-indigo-500/60 hover:text-white"
               onChange={uploadTracks}
               disabled={isUploading}
             />
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-slate-400">
               We will automatically extract metadata and duration with
               music-metadata.
             </p>
@@ -278,11 +289,11 @@ export default function UploadEventPage() {
 
           <section>
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">
+              <h2 className="text-lg font-semibold text-white">
                 {tracks.length ? "Track preview" : "No tracks uploaded yet"}
               </h2>
               {tracks.length ? (
-                <span className="text-sm text-slate-500">
+                <span className="text-sm text-slate-400">
                   {tracks.length} track{tracks.length > 1 ? "s" : ""}
                 </span>
               ) : null}
@@ -296,7 +307,7 @@ export default function UploadEventPage() {
                 />
               ))}
               {!tracks.length ? (
-                <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+                <p className="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/40 px-4 py-6 text-sm text-slate-400">
                   Upload MP3 files to see extracted titles and durations before
                   saving your event.
                 </p>
@@ -307,7 +318,7 @@ export default function UploadEventPage() {
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="submit"
-              className="flex-1 rounded-2xl bg-indigo-600 px-6 py-3 text-lg font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-400"
+              className="flex-1 rounded-2xl bg-gradient-to-r from-indigo-500 via-violet-600 to-fuchsia-500 px-6 py-3 text-lg font-semibold text-white shadow-[0_10px_35px_rgba(99,102,241,0.35)] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:bg-slate-500"
               disabled={isUploading || isSubmitting}
             >
               {isSubmitting ? "Saving event..." : "Save event"}
@@ -315,7 +326,7 @@ export default function UploadEventPage() {
             <button
               type="button"
               onClick={resetForm}
-              className="flex-1 rounded-2xl border border-slate-300 px-6 py-3 text-lg font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+              className="flex-1 rounded-2xl border border-slate-700/70 px-6 py-3 text-lg font-semibold text-slate-100 transition hover:border-indigo-500/60 hover:text-white"
               disabled={isSubmitting}
             >
               Reset form

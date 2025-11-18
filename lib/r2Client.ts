@@ -1,4 +1,4 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 type RequiredEnv =
   | "R2_ACCESS_KEY"
@@ -34,6 +34,44 @@ const getClient = (): S3Client => {
   return cachedClient;
 };
 
+const stripTrailingSlash = (value: string) => value.replace(/\/+$/, "");
+
+const getBucketDomain = () => `https://${requireEnv("R2_BUCKET")}.r2.dev`;
+
+export const getPublicBaseUrl = () => {
+  const configured = process.env.R2_PUBLIC_BASE_URL?.trim();
+  if (configured) {
+    return stripTrailingSlash(configured);
+  }
+  return stripTrailingSlash(getBucketDomain());
+};
+
+const getObjectKeyFromUrl = (url: string): string | null => {
+  const trimmed = url.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const candidates = [getPublicBaseUrl(), stripTrailingSlash(getBucketDomain())];
+
+  for (const base of candidates) {
+    if (trimmed.startsWith(base)) {
+      const remainder = trimmed.slice(base.length).replace(/^\/+/, "");
+      if (remainder) {
+        return remainder;
+      }
+    }
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    const maybeKey = parsed.pathname.replace(/^\/+/, "");
+    return maybeKey || null;
+  } catch {
+    return null;
+  }
+};
+
 interface UploadParams {
   objectKey: string;
   body: Buffer | Uint8Array;
@@ -57,5 +95,32 @@ export const uploadFileToR2 = async ({
     }),
   );
 
-  return `https://${bucket}.r2.dev/${objectKey}`;
+  const publicBase = getPublicBaseUrl();
+  const normalizedKey = objectKey.replace(/^\/+/, "");
+
+  return `${publicBase}/${normalizedKey}`;
+};
+
+export const deleteObjectByKey = async (objectKey: string) => {
+  const bucket = requireEnv("R2_BUCKET");
+  const client = getClient();
+
+  await client.send(
+    new DeleteObjectCommand({
+      Bucket: bucket,
+      Key: objectKey,
+    }),
+  );
+};
+
+export const deleteObjectsForUrls = async (urls: string[]) => {
+  const keys = urls
+    .map((url) => getObjectKeyFromUrl(url))
+    .filter((key): key is string => Boolean(key));
+
+  if (!keys.length) {
+    return;
+  }
+
+  await Promise.all(keys.map((key) => deleteObjectByKey(key)));
 };

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { persistEvents, readEventsFile } from "@/lib/events";
+import { deleteObjectsForUrls } from "@/lib/r2Client";
 
 export const runtime = "nodejs";
 
@@ -26,6 +27,19 @@ export async function GET() {
 export async function DELETE() {
   try {
     const existing = await readEventsFile();
+    if (existing.length) {
+      try {
+        await deleteObjectsForUrls(
+          existing.flatMap((event) => event.tracks.map((track) => track.track_url)),
+        );
+      } catch (error) {
+        console.error("Failed to delete track files while clearing events:", error);
+        return NextResponse.json(
+          { error: "Unable to delete event assets from storage." },
+          { status: 502 },
+        );
+      }
+    }
     await persistEvents([]);
     return NextResponse.json(
       { deleted: existing.length, remaining: 0 },

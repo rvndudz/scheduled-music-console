@@ -8,6 +8,7 @@ import {
   readEventsFile,
   ValidationError,
 } from "@/lib/events";
+import { deleteObjectsForUrls } from "@/lib/r2Client";
 
 export const runtime = "nodejs";
 
@@ -123,6 +124,18 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       ...events.slice(0, index),
       ...events.slice(index + 1, events.length),
     ];
+
+    try {
+      await deleteObjectsForUrls(
+        deletedEvent.tracks.map((track) => track.track_url),
+      );
+    } catch (error) {
+      console.error(`Failed to delete track files for event ${eventId}:`, error);
+      return NextResponse.json(
+        { error: "Unable to delete event assets from storage." },
+        { status: 502 },
+      );
+    }
 
     await persistEvents(nextEvents);
 

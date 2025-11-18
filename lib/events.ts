@@ -2,22 +2,21 @@ import path from "node:path";
 import { promises as fs } from "node:fs";
 
 import type { EventRecord, TrackRecord } from "@/types/events";
+import { normalizeUtcDateString } from "@/lib/timezone";
 
 export const eventsFilePath = path.join(process.cwd(), "data", "events.json");
 
 export class ValidationError extends Error {}
 
 export const ensureIsoDate = (value: unknown, field: string): string => {
-  if (typeof value !== "string" || !value.trim()) {
-    throw new ValidationError(`${field} is required.`);
+  try {
+    return normalizeUtcDateString(value, field);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new ValidationError(error.message);
+    }
+    throw error;
   }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    throw new ValidationError(`${field} must be a valid date.`);
-  }
-
-  return date.toISOString();
 };
 
 export const ensureTracks = (tracks: unknown): TrackRecord[] => {
