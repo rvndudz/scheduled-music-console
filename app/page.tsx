@@ -25,6 +25,12 @@ export default function Home() {
           >
             Open the Upload Event form
           </Link>
+          <Link
+            href="/events"
+            className="flex-1 rounded-xl border border-slate-200 px-6 py-3 text-center text-lg font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
+          >
+            Manage current events
+          </Link>
           <a
             href="https://developers.cloudflare.com/r2/"
             className="flex-1 rounded-xl border border-slate-200 px-6 py-3 text-center text-lg font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900"

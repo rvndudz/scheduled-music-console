@@ -13,5 +13,26 @@
         "track_duration_seconds": 180
       }
     ]
+  },
+  {
+    "event_id": "cf851128-9dd3-49cc-a5bb-96f0e65de688",
+    "event_name": "test",
+    "artist_name": "test",
+    "start_time_utc": "2025-11-18T13:15:00.000Z",
+    "end_time_utc": "2025-11-19T13:15:00.000Z",
+    "tracks": [
+      {
+        "track_id": "0d70eb9a-642b-4238-b35d-271e595bb8cb",
+        "track_name": "horror",
+        "track_url": "https://audio-live.r2.dev/tracks/0d70eb9a-642b-4238-b35d-271e595bb8cb-horror.mp3",
+        "track_duration_seconds": 148
+      },
+      {
+        "track_id": "8e338de2-8251-41a8-af17-b3c40f6bc5c0",
+        "track_name": "christmas",
+        "track_url": "https://audio-live.r2.dev/tracks/8e338de2-8251-41a8-af17-b3c40f6bc5c0-christmas.mp3",
+        "track_duration_seconds": 113
+      }
+    ]
   }
 ]
