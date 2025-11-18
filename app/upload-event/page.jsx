@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import TrackPreview from "../components/TrackPreview";
 import { convertSriLankaInputToUtc } from "@/lib/timezone";
 
 const initialFormState = {
@@ -15,10 +13,14 @@ const initialFormState = {
 const fieldClasses =
   "w-full rounded-2xl border border-slate-700/70 bg-slate-900/60 px-4 py-3 text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600/40 placeholder:text-slate-500";
 
+const createClientId = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
 export default function UploadEventPage() {
   const [formValues, setFormValues] = useState(initialFormState);
-  const [tracks, setTracks] = useState([]);
-  const [isUploading, setIsUploading] = useState(false);
+  const [queuedTracks, setQueuedTracks] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState(null);
 
@@ -29,84 +31,77 @@ export default function UploadEventPage() {
 
   const resetForm = () => {
     setFormValues(initialFormState);
-    setTracks([]);
+    setQueuedTracks([]);
     setStatus({
       type: "info",
-      text: "Form cleared. Tracks have been removed from the queue.",
+      text: "Form cleared. No mixes are queued anymore.",
     });
   };
 
-  const uploadTracks = async (event) => {
+  const queueTracks = (event) => {
     const fileList = event.target.files;
-    if (!fileList || fileList.length === 0) {
+    if (!fileList || !fileList.length) {
       return;
     }
 
-    setStatus(null);
-    setIsUploading(true);
+    const additions = Array.from(fileList).map((file) => ({
+      id: createClientId(),
+      file,
+    }));
 
-    for (const file of Array.from(fileList)) {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      try {
-        const response = await fetch("/api/upload-track", {
-          method: "POST",
-          body: formData,
-        });
-        const payload = await response.json();
-
-        if (!response.ok) {
-          throw new Error(payload?.error ?? "Unable to upload track.");
-        }
-
-        setTracks((prev) => [...prev, payload]);
-        setStatus({
-          type: "success",
-          text: `Added "${payload.track_name}" to the event.`,
-        });
-      } catch (error) {
-        setStatus({
-          type: "error",
-          text:
-            error instanceof Error
-              ? error.message
-              : "Track upload failed unexpectedly.",
-        });
-      }
-    }
-
-    setIsUploading(false);
+    setQueuedTracks((prev) => [...prev, ...additions]);
+    setStatus({
+      type: "success",
+      text: `Added ${additions.length} file${
+        additions.length > 1 ? "s" : ""
+      } to the queue.`,
+    });
     event.target.value = "";
   };
 
-  const removeTrack = (trackId) => {
-    setTracks((prev) => prev.filter((track) => track.track_id !== trackId));
+  const removeQueuedTrack = (queuedId) => {
+    setQueuedTracks((prev) => prev.filter((item) => item.id !== queuedId));
+  };
+
+  const uploadQueuedTracks = async () => {
+    const uploaded = [];
+    for (const item of queuedTracks) {
+      const formData = new FormData();
+      formData.append("file", item.file);
+
+      const response = await fetch("/api/upload-track", {
+        method: "POST",
+        body: formData,
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error ?? "Unable to upload track.");
+      }
+      uploaded.push(payload);
+    }
+    return uploaded;
   };
 
   const submitEvent = async (event) => {
     event.preventDefault();
     setStatus(null);
 
-    if (!tracks.length) {
-      setStatus({ type: "error", text: "Please upload at least one track." });
+    if (!queuedTracks.length) {
+      setStatus({
+        type: "error",
+        text: "Please add at least one MP3 before publishing.",
+      });
       return;
     }
 
-    let payload;
+    let normalizedTimes;
     try {
-      payload = {
-        event_name: formValues.event_name.trim(),
-        artist_name: formValues.artist_name.trim(),
-        start_time_utc: convertSriLankaInputToUtc(
+      normalizedTimes = {
+        start: convertSriLankaInputToUtc(
           formValues.start_time_utc,
           "Start time",
         ),
-        end_time_utc: convertSriLankaInputToUtc(
-          formValues.end_time_utc,
-          "End time",
-        ),
-        tracks,
+        end: convertSriLankaInputToUtc(formValues.end_time_utc, "End time"),
       };
     } catch (error) {
       setStatus({
@@ -116,7 +111,7 @@ export default function UploadEventPage() {
       return;
     }
 
-    if (!payload.event_name || !payload.artist_name) {
+    if (!formValues.event_name.trim() || !formValues.artist_name.trim()) {
       setStatus({
         type: "error",
         text: "Event and artist names cannot be empty.",
@@ -125,24 +120,50 @@ export default function UploadEventPage() {
     }
 
     if (
-      new Date(payload.end_time_utc).getTime() <=
-      new Date(payload.start_time_utc).getTime()
+      new Date(normalizedTimes.end).getTime() <=
+      new Date(normalizedTimes.start).getTime()
     ) {
       setStatus({
         type: "error",
-        text: "End time must be after the start time.",
+        text: "End time must be after start time.",
       });
       return;
     }
 
     setIsSubmitting(true);
+    setStatus({
+      type: "info",
+      text: "Uploading mixes to MixMaster VR...",
+    });
+
+    let uploadedTracks = [];
+    try {
+      uploadedTracks = await uploadQueuedTracks();
+    } catch (error) {
+      setIsSubmitting(false);
+      setStatus({
+        type: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Failed to upload one of the mixes.",
+      });
+      return;
+    }
 
     try {
       const response = await fetch("/api/create-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          event_name: formValues.event_name.trim(),
+          artist_name: formValues.artist_name.trim(),
+          start_time_utc: normalizedTimes.start,
+          end_time_utc: normalizedTimes.end,
+          tracks: uploadedTracks,
+        }),
       });
+
       const data = await response.json();
 
       if (!response.ok) {
@@ -151,10 +172,10 @@ export default function UploadEventPage() {
 
       setStatus({
         type: "success",
-        text: `Event "${data.event.event_name}" saved successfully.`,
+        text: `“${data.event.event_name}” is now scheduled inside MixMaster VR.`,
       });
       setFormValues(initialFormState);
-      setTracks([]);
+      setQueuedTracks([]);
     } catch (error) {
       setStatus({
         type: "error",
@@ -167,33 +188,17 @@ export default function UploadEventPage() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-6 py-12 text-slate-100">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-indigo-500/60 hover:text-white"
-        >
-          ← Home
-        </Link>
-        <Link
-          href="/events"
-          className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-indigo-500/60 hover:text-white"
-        >
-          View current events
-        </Link>
-      </div>
       <div className="rounded-[32px] border border-slate-800/70 bg-[var(--panel)] p-10 shadow-[0_0_80px_rgba(79,70,229,0.25)] backdrop-blur">
         <header className="mb-8">
           <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">
-            Upload Event
+            Create MixMaster VR event
           </p>
           <h1 className="mt-3 text-3xl font-semibold text-white">
-            Create a DJ event and upload MP3 tracks
+            Add new experiences to the MixMaster VR lineup
           </h1>
           <p className="mt-3 text-base text-slate-400">
-            Each track is sent to <span className="font-mono text-indigo-200">/api/upload-track</span>{" "}
-            for metadata extraction and Cloudflare R2 storage. When you submit
-            the form the compiled event is appended to{" "}
-            <span className="font-mono text-indigo-200">data/events.json</span>.
+            Upload your mixes, preview the essential info, and publish the set so
+            partygoers inside MixMaster VR can enjoy it right on schedule.
           </p>
         </header>
 
@@ -214,9 +219,9 @@ export default function UploadEventPage() {
         <form className="space-y-8" onSubmit={submitEvent}>
           <section className="grid gap-4 md:grid-cols-2">
             <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-300">
-              Event name
-            </label>
+              <label className="mb-1 block text-sm	font-semibold text-slate-300">
+                Event name
+              </label>
               <input
                 className={fieldClasses}
                 type="text"
@@ -228,9 +233,9 @@ export default function UploadEventPage() {
               />
             </div>
             <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-300">
-              Artist / DJ name
-            </label>
+              <label className="mb-1 block text-sm	font-semibold text-slate-300">
+                Artist / DJ name
+              </label>
               <input
                 className={fieldClasses}
                 type="text"
@@ -242,9 +247,9 @@ export default function UploadEventPage() {
               />
             </div>
             <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-300">
-              Start time (Sri Lanka time)
-            </label>
+              <label className="mb-1 block text-sm	font-semibold text-slate-300">
+                Start time (Sri Lanka time)
+              </label>
               <input
                 className={fieldClasses}
                 type="datetime-local"
@@ -255,9 +260,9 @@ export default function UploadEventPage() {
               />
             </div>
             <div>
-            <label className="mb-1 block text-sm font-semibold text-slate-300">
-              End time (Sri Lanka time)
-            </label>
+              <label className="mb-1 block text-sm	font-semibold text-slate-300">
+                End time (Sri Lanka time)
+              </label>
               <input
                 className={fieldClasses}
                 type="datetime-local"
@@ -278,38 +283,54 @@ export default function UploadEventPage() {
               accept=".mp3,audio/mpeg"
               multiple
               className="block w-full cursor-pointer rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/60 px-4 py-6 text-center text-base font-medium text-slate-200 transition hover:border-indigo-500/60 hover:text-white"
-              onChange={uploadTracks}
-              disabled={isUploading}
+              onChange={queueTracks}
+              disabled={isSubmitting}
             />
             <p className="mt-2 text-sm text-slate-400">
-              We will automatically extract metadata and duration with
-              music-metadata.
+              We will upload the queued files after you hit “Save event.” Feel
+              free to add multiple mixes before publishing.
             </p>
           </section>
 
           <section>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-white">
-                {tracks.length ? "Track preview" : "No tracks uploaded yet"}
+                {queuedTracks.length ? "Queued mixes" : "No mixes added yet"}
               </h2>
-              {tracks.length ? (
+              {queuedTracks.length ? (
                 <span className="text-sm text-slate-400">
-                  {tracks.length} track{tracks.length > 1 ? "s" : ""}
+                  {queuedTracks.length} file
+                  {queuedTracks.length > 1 ? "s" : ""}
                 </span>
               ) : null}
             </div>
             <div className="space-y-3">
-              {tracks.map((track) => (
-                <TrackPreview
-                  key={track.track_id}
-                  track={track}
-                  onRemove={removeTrack}
-                />
+              {queuedTracks.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between rounded-2xl border border-slate-700/70 bg-slate-900/60 px-5 py-4"
+                >
+                  <div>
+                    <p className="text-base font-semibold text-white">
+                      {item.file.name}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {(item.file.size / 1024).toFixed(1)} KB
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeQueuedTrack(item.id)}
+                    className="rounded-xl border border-rose-500/40 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-rose-200 transition hover:bg-rose-500/10"
+                  >
+                    Remove
+                  </button>
+                </div>
               ))}
-              {!tracks.length ? (
+              {!queuedTracks.length ? (
                 <p className="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/40 px-4 py-6 text-sm text-slate-400">
-                  Upload MP3 files to see extracted titles and durations before
-                  saving your event.
+                  Add your MP3 files here. We will upload them to MixMaster VR
+                  after you save the event.
                 </p>
               ) : null}
             </div>
@@ -319,7 +340,7 @@ export default function UploadEventPage() {
             <button
               type="submit"
               className="flex-1 rounded-2xl bg-gradient-to-r from-indigo-500 via-violet-600 to-fuchsia-500 px-6 py-3 text-lg font-semibold text-white shadow-[0_10px_35px_rgba(99,102,241,0.35)] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:bg-slate-500"
-              disabled={isUploading || isSubmitting}
+              disabled={isSubmitting}
             >
               {isSubmitting ? "Saving event..." : "Save event"}
             </button>

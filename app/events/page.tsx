@@ -8,8 +8,6 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from "react";
-import Link from "next/link";
-
 import type { EventRecord } from "@/types/events";
 import {
   convertSriLankaInputToUtc,
@@ -308,29 +306,15 @@ const ManageEventsPage = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">
-              Current Events
+              MixMaster VR lineup
             </p>
             <h1 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">
-              Review, edit, and prune scheduled music events.
+              Review, edit, and fine-tune upcoming sets.
             </h1>
             <p className="mt-3 text-base text-slate-400">
-              Use the actions below to review JSON-backed events, play tracks,
-              edit metadata, or remove outdated entries.
+              See every scheduled experience for MixMaster VR listeners, play the
+              tracks from here, and tidy things up before they go live.
             </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center rounded-2xl border border-slate-700/70 bg-slate-900/60 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-indigo-500/60 hover:text-white"
-            >
-              ← Home
-            </Link>
-            <Link
-              href="/upload-event"
-              className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-indigo-500 via-violet-600 to-fuchsia-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_35px_rgba(99,102,241,0.35)] transition hover:scale-[1.01]"
-            >
-              Create a new event
-            </Link>
           </div>
         </div>
 
@@ -392,7 +376,8 @@ const ManageEventsPage = () => {
             </p>
           ) : events.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/50 px-4 py-6 text-sm text-slate-400">
-              No events saved yet. Head over to the upload form and create one.
+              No experiences are queued yet. Use the Create Event button to add a
+              new mix for MixMaster VR.
             </p>
           ) : (
             <div className="space-y-4">
@@ -484,8 +469,8 @@ const ManageEventsPage = () => {
             {editingId ? "Edit event" : "Select an event to edit"}
           </h2>
           <p className="mt-2 text-sm text-slate-400">
-            Choose an event from the list to update its metadata. Times are
-            entered in Sri Lanka time and persisted as UTC.
+            Pick a set from the left to tweak its details. Enter times in Sri
+            Lanka time—the schedule will keep everything in sync for MixMaster VR.
           </p>
 
           {editingId ? (

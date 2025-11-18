@@ -13,14 +13,17 @@ import { deleteObjectsForUrls } from "@/lib/r2Client";
 export const runtime = "nodejs";
 
 type RouteParams = {
-  params: { eventId: string };
+  params: { eventId: string } | Promise<{ eventId: string }>;
 };
 
 const findEventIndex = (events: EventRecord[], eventId: string) =>
   events.findIndex((event) => event.event_id === eventId);
 
-export async function PUT(request: Request, { params }: RouteParams) {
-  const { eventId } = params;
+const resolveParams = async (params: RouteParams["params"]) =>
+  (await params) as { eventId: string };
+
+export async function PUT(request: Request, context: RouteParams) {
+  const { eventId } = await resolveParams(context.params);
 
   try {
     const events = await readEventsFile();
@@ -97,7 +100,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    console.error(`Failed to update event ${params.eventId}:`, error);
+    console.error(`Failed to update event ${eventId}:`, error);
     return NextResponse.json(
       { error: "Unexpected error while updating the event." },
       { status: 500 },
@@ -105,8 +108,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(_request: Request, { params }: RouteParams) {
-  const { eventId } = params;
+export async function DELETE(_request: Request, context: RouteParams) {
+  const { eventId } = await resolveParams(context.params);
 
   try {
     const events = await readEventsFile();
