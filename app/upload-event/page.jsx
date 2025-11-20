@@ -12,7 +12,7 @@ const initialFormState = {
 };
 
 const fieldClasses =
-  "w-full rounded-2xl border border-slate-700/70 bg-slate-900/60 px-4 py-3 text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600/40 placeholder:text-slate-500";
+  "w-full rounded-2xl border border-red-700/60 bg-[#3d0c12]/80 px-4 py-3 text-slate-100 shadow-sm focus:border-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-500/40 placeholder:text-slate-500";
 
 const createClientId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -256,16 +256,16 @@ export default function UploadEventPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-6 py-12 text-slate-100">
-      <div className="rounded-[32px] border border-slate-800/70 bg-[var(--panel)] p-10 shadow-[0_0_80px_rgba(79,70,229,0.25)] backdrop-blur">
+    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-6 py-12 text-rose-50">
+      <div className="rounded-[32px] border border-[#ff9a6b]/40 bg-[var(--panel)] p-10 shadow-[0_0_90px_rgba(255,70,70,0.4)] backdrop-blur">
         <header className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[#ffa6a6]">
             Create MixMaster VR event
           </p>
           <h1 className="mt-3 text-3xl font-semibold text-white">
             Add new experiences to the MixMaster VR lineup
           </h1>
-          <p className="mt-3 text-base text-slate-400">
+          <p className="mt-3 text-base text-[#ffd6d6]">
             Upload your mixes, preview the essential info, and publish the set so
             partygoers inside MixMaster VR can enjoy it right on schedule.
           </p>
@@ -275,10 +275,10 @@ export default function UploadEventPage() {
           <div
             className={`mb-6 rounded-2xl border px-4 py-3 text-sm font-medium ${
               status.type === "error"
-                ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
+                ? "border-[#ff5c5c]/70 bg-[#ff5c5c]/15 text-[#ffdada]"
                 : status.type === "success"
-                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
-                  : "border-sky-500/40 bg-sky-500/10 text-sky-200"
+                  ? "border-[#ffcf4d]/60 bg-[#ffcf4d]/15 text-[#fff3d6]"
+                  : "border-[#ff9fb0]/50 bg-white/10 text-[#ffe1ea]"
             }`}
           >
             {status.text}
@@ -288,9 +288,9 @@ export default function UploadEventPage() {
         <form className="space-y-8" onSubmit={submitEvent}>
           <section className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm	font-semibold text-slate-300">
-                Event name
-              </label>
+            <label className="mb-1 block text-sm font-semibold text-[#ffd6d6]">
+              Event name
+            </label>
               <input
                 className={fieldClasses}
                 type="text"
@@ -302,9 +302,9 @@ export default function UploadEventPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm	font-semibold text-slate-300">
-                Artist / DJ name
-              </label>
+            <label className="mb-1 block text-sm font-semibold text-[#ffd6d6]">
+              Artist / DJ name
+            </label>
               <input
                 className={fieldClasses}
                 type="text"
@@ -316,9 +316,9 @@ export default function UploadEventPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm	font-semibold text-slate-300">
-                Start time (Sri Lanka time)
-              </label>
+            <label className="mb-1 block text-sm font-semibold text-[#ffd6d6]">
+              Start time (Sri Lanka time)
+            </label>
               <input
                 className={fieldClasses}
                 type="datetime-local"
@@ -329,9 +329,9 @@ export default function UploadEventPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm	font-semibold text-slate-300">
-                End time (Sri Lanka time)
-              </label>
+            <label className="mb-1 block text-sm font-semibold text-[#ffd6d6]">
+              End time (Sri Lanka time)
+            </label>
               <input
                 className={fieldClasses}
                 type="datetime-local"
@@ -344,31 +344,31 @@ export default function UploadEventPage() {
           </section>
 
           <section>
-            <label className="mb-1 block text-sm font-semibold text-slate-300">
+            <label className="mb-1 block text-sm font-semibold text-[#ffd6d6]">
               Upload MP3 tracks
             </label>
             <input
               type="file"
               accept=".mp3,audio/mpeg"
               multiple
-              className="block w-full cursor-pointer rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/60 px-4 py-6 text-center text-base font-medium text-slate-200 transition hover:border-indigo-500/60 hover:text-white"
+              className="block w-full cursor-pointer rounded-2xl border border-dashed border-red-700/50 bg-[#3d0c12]/70 px-4 py-6 text-center text-base font-medium text-slate-200 transition hover:border-rose-400/60 hover:text-white"
               onChange={queueTracks}
               disabled={isSubmitting}
             />
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-rose-50/80">
               We will upload the queued files after you hit “Save event.” Feel
               free to add multiple mixes before publishing.
             </p>
           </section>
 
           <section>
-            <label className="mb-1 block text-sm font-semibold text-slate-300">
+            <label className="mb-1 block text-sm font-semibold text-[#ffd6d6]">
               Cover image (PNG/JPEG/WebP)
             </label>
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp"
-              className="block w-full cursor-pointer rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/60 px-4 py-5 text-center text-base font-medium text-slate-200 transition hover:border-indigo-500/60 hover:text-white"
+              className="block w-full cursor-pointer rounded-2xl border border-dashed border-red-700/50 bg-[#3d0c12]/70 px-4 py-5 text-center text-base font-medium text-slate-200 transition hover:border-rose-400/60 hover:text-white"
               onChange={handleCoverChange}
               disabled={isSubmitting}
             />
@@ -380,19 +380,19 @@ export default function UploadEventPage() {
                   width={80}
                   height={80}
                   unoptimized
-                  className="h-20 w-20 rounded-2xl border border-slate-700/70 object-cover"
+                  className="h-20 w-20 rounded-2xl border border-[#ff9a6b]/60 object-cover"
                 />
                 <button
                   type="button"
                   onClick={removeCover}
-                  className="rounded-xl border border-rose-500/40 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-rose-200 transition hover:bg-rose-500/10"
+                  className="rounded-xl border border-[#ff4a4a]/60 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[#ffd3d3] transition hover:bg-[#ff4a4a]/10"
                   disabled={isSubmitting}
                 >
                   Remove cover
                 </button>
               </div>
             ) : (
-              <p className="mt-2 text-sm text-slate-400">
+              <p className="mt-2 text-sm text-rose-50/80">
                 A cover image helps players identify events quickly in your
                 in-game menus.
               </p>
@@ -405,7 +405,7 @@ export default function UploadEventPage() {
                 {queuedTracks.length ? "Queued mixes" : "No mixes added yet"}
               </h2>
               {queuedTracks.length ? (
-                <span className="text-sm text-slate-400">
+                <span className="text-sm text-rose-50/80">
                   {queuedTracks.length} file
                   {queuedTracks.length > 1 ? "s" : ""}
                 </span>
@@ -415,13 +415,13 @@ export default function UploadEventPage() {
               {queuedTracks.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-2xl border border-slate-700/70 bg-slate-900/60 px-5 py-4"
+                  className="flex items-center justify-between rounded-2xl border border-red-700/40 bg-[#3d0c12]/70 px-5 py-4"
                 >
                   <div>
                     <p className="text-base font-semibold text-white">
                       {item.file.name}
                     </p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-rose-50/80">
                       {(item.file.size / 1024).toFixed(1)} KB
                     </p>
                   </div>
@@ -435,9 +435,10 @@ export default function UploadEventPage() {
                 </div>
               ))}
               {!queuedTracks.length ? (
-                <p className="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/40 px-4 py-6 text-sm text-slate-400">
-                  Add your MP3 files here. We will upload them to MixMaster VR
-                  after you save the event.
+                <p className="rounded-2xl border border-dashed border-red-100/60 bg-white/5 px-4 py-6 text-sm text-rose-100/90">
+                  Drop your MP3 files here. They stay on your device until you
+                  hit <em>Save event</em>, then we send everything up for playback
+                  in-game.
                 </p>
               ) : null}
             </div>
@@ -446,7 +447,7 @@ export default function UploadEventPage() {
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="submit"
-              className="flex-1 rounded-2xl bg-gradient-to-r from-indigo-500 via-violet-600 to-fuchsia-500 px-6 py-3 text-lg font-semibold text-white shadow-[0_10px_35px_rgba(99,102,241,0.35)] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:bg-slate-500"
+              className="flex-1 rounded-2xl bg-gradient-to-r from-rose-500 via-red-500 to-orange-500 px-6 py-3 text-lg font-semibold text-white shadow-[0_10px_35px_rgba(190,18,60,0.45)] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:bg-slate-500"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Saving event..." : "Save event"}
@@ -454,7 +455,7 @@ export default function UploadEventPage() {
             <button
               type="button"
               onClick={resetForm}
-              className="flex-1 rounded-2xl border border-slate-700/70 px-6 py-3 text-lg font-semibold text-slate-100 transition hover:border-indigo-500/60 hover:text-white"
+              className="flex-1 rounded-2xl border border-red-700/60 px-6 py-3 text-lg font-semibold text-slate-100 transition hover:border-rose-400/60 hover:text-white"
               disabled={isSubmitting}
             >
               Reset form

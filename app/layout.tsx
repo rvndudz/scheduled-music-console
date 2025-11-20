@@ -28,7 +28,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased`}
       >
-        <header className="sticky top-0 z-20 border-b border-slate-800/70 bg-[var(--panel)]/70 backdrop-blur">
+        <header className="sticky top-0 z-20 border-b border-rose-100/60 bg-[var(--panel)]/80 backdrop-blur">
           <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4 text-slate-100">
             <div className="flex flex-col">
               <span className="text-xs uppercase tracking-[0.4em] text-slate-400">MixMaster VR</span>

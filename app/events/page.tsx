@@ -36,7 +36,7 @@ const initialFormState: FormState = {
 };
 
 const fieldClasses =
-  "w-full rounded-2xl border border-slate-700/70 bg-slate-900/60 px-4 py-3 text-slate-100 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600/40 placeholder:text-slate-500";
+  "w-full rounded-2xl border border-red-700/60 bg-[#3d0c12]/80 px-4 py-3 text-slate-100 shadow-sm focus:border-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-500/40 placeholder:text-slate-500";
 
 const formatDuration = (seconds: number) => {
   const mins = Math.floor(seconds / 60);
@@ -303,16 +303,16 @@ const ManageEventsPage = () => {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-6 py-12 text-slate-100">
-      <div className="rounded-[32px] border border-slate-800/70 bg-[var(--panel)] p-8 shadow-[0_0_80px_rgba(79,70,229,0.25)] backdrop-blur">
+      <div className="rounded-[32px] border border-rose-100/50 bg-[var(--panel)] p-8 shadow-[0_0_70px_rgba(190,18,60,0.35)] backdrop-blur">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-rose-100/70">
               MixMaster VR lineup
             </p>
             <h1 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">
               Review, edit, and fine-tune upcoming sets.
             </h1>
-            <p className="mt-3 text-base text-slate-400">
+            <p className="mt-3 text-base text-rose-50/80">
               See every scheduled experience for MixMaster VR listeners, play the
               tracks from here, and tidy things up before they go live.
             </p>
@@ -323,10 +323,10 @@ const ManageEventsPage = () => {
           <p
             className={`mt-6 rounded-2xl border px-4 py-3 text-sm font-medium ${
               status.type === "success"
-                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
+                ? "border-amber-300/70 bg-amber-300/15 text-amber-50/90"
                 : status.type === "error"
-                  ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
-                  : "border-sky-500/40 bg-sky-500/10 text-sky-200"
+                  ? "border-rose-400/70 bg-rose-400/15 text-rose-100"
+                  : "border-rose-200/70 bg-white/10 text-rose-50/90"
             }`}
           >
             {status.text}
@@ -335,21 +335,21 @@ const ManageEventsPage = () => {
 
         <div className="mt-6 flex flex-wrap gap-3">
           <button
-            className="rounded-2xl border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-indigo-500/70 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-2xl border border-red-700/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-rose-400/70 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
             onClick={fetchEvents}
             disabled={isLoading}
           >
             Refresh list
           </button>
           <button
-            className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-200 transition hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-70"
+            className="rounded-2xl border border-orange-500/40 bg-orange-500/10 px-4 py-2 text-sm font-semibold text-orange-200 transition hover:bg-orange-500/20 disabled:cursor-not-allowed disabled:opacity-70"
             onClick={deleteExpiredEvents}
             disabled={isLoading}
           >
             Delete expired
           </button>
           <button
-            className="rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-70"
+            className="rounded-2xl border border-rose-600/50 bg-rose-600/10 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:bg-rose-600/20 disabled:cursor-not-allowed disabled:opacity-70"
             onClick={deleteAllEvents}
             disabled={isLoading || events.length === 0}
           >
@@ -359,12 +359,12 @@ const ManageEventsPage = () => {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr,1fr]">
-        <section className="rounded-[32px] border border-slate-800/70 bg-[var(--panel)] p-6 shadow-[0_0_50px_rgba(2,6,23,0.6)]">
+        <section className="rounded-[32px] border border-rose-100/50 bg-[var(--panel)] p-6 shadow-[0_0_50px_rgba(190,18,60,0.25)]">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-white">
               Event queue
             </h2>
-            <span className="text-sm text-slate-400">
+            <span className="text-sm text-rose-50/80">
               {isLoading
                 ? "Loading..."
                 : `${events.length} event${events.length === 1 ? "" : "s"}`}
@@ -372,23 +372,23 @@ const ManageEventsPage = () => {
           </div>
 
           {isLoading ? (
-            <p className="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/50 px-4 py-6 text-sm text-slate-400">
+            <p className="rounded-2xl border border-dashed border-rose-100/60 bg-white/5 px-4 py-6 text-sm text-rose-100/90">
               Loading events...
             </p>
           ) : events.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/50 px-4 py-6 text-sm text-slate-400">
-              No experiences are queued yet. Use the Create Event button to add a
-              new mix for MixMaster VR.
+            <p className="rounded-2xl border border-dashed border-red-100/60 bg-white/5 px-4 py-6 text-sm text-rose-100/90">
+              Nothing scheduled yet. Head to <strong>Create Event</strong> and drop
+              in the next mix when you&apos;re ready.
             </p>
           ) : (
             <div className="space-y-4">
               {events.map((eventRecord) => (
                 <article
                   key={eventRecord.event_id}
-                  className={`rounded-2xl border p-4 shadow-[0_0_35px_rgba(2,6,23,0.55)] ${
+                  className={`rounded-2xl border p-4 shadow-[0_0_35px_rgba(44,5,15,0.5)] ${
                     expiredEventIds.has(eventRecord.event_id)
-                      ? "border-amber-500/40 bg-amber-500/5"
-                      : "border-slate-700/70 bg-slate-900/60"
+                      ? "border-orange-200/70 bg-orange-50/10"
+                      : "border-red-100/50 bg-[#3d0c12]/70"
                   }`}
                 >
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -400,16 +400,16 @@ const ManageEventsPage = () => {
                           width={112}
                           height={112}
                           unoptimized
-                          className="h-28 w-28 rounded-2xl border border-slate-700/70 object-cover"
+                          className="h-28 w-28 rounded-2xl border border-red-100/60 object-cover"
                         />
                       ) : null}
                       <h3 className="text-lg font-semibold text-white">
                         {eventRecord.event_name}
                       </h3>
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-rose-50/80">
                         {eventRecord.artist_name}
                       </p>
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-rose-50/80">
                         {formatSriLankaDateTime(eventRecord.start_time_utc)} &rarr;{" "}
                         {formatSriLankaDateTime(eventRecord.end_time_utc)}
                       </p>
@@ -421,7 +421,7 @@ const ManageEventsPage = () => {
                     </div>
                     <div className="flex gap-2">
                       <button
-                        className="rounded-xl border border-slate-600/70 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-200 transition hover:border-indigo-500/70 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-xl border border-red-700/60 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-200 transition hover:border-rose-400/70 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={() => startEditing(eventRecord)}
                         disabled={isLoading}
                       >
@@ -443,14 +443,14 @@ const ManageEventsPage = () => {
                     {eventRecord.tracks.map((track) => (
                       <div
                         key={track.track_id}
-                        className="rounded-2xl border border-slate-700/70 bg-slate-900/60 p-3"
+                        className="rounded-2xl border border-red-700/40 bg-[#3d0c12]/70 p-3"
                       >
                         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                           <div>
                             <p className="text-sm font-semibold text-white">
                               {track.track_name}
                             </p>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-rose-50/80">
                               {track.track_url}
                             </p>
                           </div>
@@ -475,11 +475,11 @@ const ManageEventsPage = () => {
           )}
         </section>
 
-        <section className="rounded-[32px] border border-slate-800/70 bg-[var(--panel)] p-6 shadow-[0_0_50px_rgba(2,6,23,0.6)]">
+        <section className="rounded-[32px] border border-rose-100/50 bg-[var(--panel)] p-6 shadow-[0_0_50px_rgba(190,18,60,0.25)]">
           <h2 className="text-xl font-semibold text-white">
             {editingId ? "Edit event" : "Select an event to edit"}
           </h2>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-2 text-sm text-rose-50/80">
             Pick a set from the left to tweak its details. Enter times in Sri
             Lanka time—the schedule will keep everything in sync for MixMaster VR.
           </p>
@@ -541,14 +541,14 @@ const ManageEventsPage = () => {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   type="submit"
-                  className="flex-1 rounded-2xl bg-gradient-to-r from-indigo-500 via-violet-600 to-fuchsia-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_10px_35px_rgba(99,102,241,0.35)] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:bg-slate-500"
+                  className="flex-1 rounded-2xl bg-gradient-to-r from-rose-500 via-red-500 to-orange-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_10px_35px_rgba(190,18,60,0.45)] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:bg-slate-500"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Saving..." : "Save changes"}
                 </button>
                 <button
                   type="button"
-                  className="flex-1 rounded-2xl border border-slate-700/70 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-indigo-500/60 hover:text-white"
+                  className="flex-1 rounded-2xl border border-red-700/60 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-rose-400/60 hover:text-white"
                   onClick={cancelEditing}
                   disabled={isSubmitting}
                 >
@@ -557,9 +557,8 @@ const ManageEventsPage = () => {
               </div>
             </form>
           ) : (
-            <div className="mt-6 rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/50 px-4 py-6 text-sm text-slate-400">
-              Select an event from the left-hand column to populate the editing
-              form.
+            <div className="mt-6 rounded-2xl border border-dashed border-red-100/60 bg-white/5 px-4 py-6 text-sm text-rose-100/90">
+              Pick any event in the list to load its details here for quick edits.
             </div>
           )}
         </section>

@@ -19,7 +19,7 @@ const formatDuration = (value: number): string => {
 
 const TrackPreview = ({ track, onRemove }: TrackPreviewProps) => {
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-slate-700/70 bg-slate-900/60 px-5 py-4 shadow-[0_10px_35px_rgba(2,6,23,0.6)]">
+    <div className="flex items-center justify-between rounded-2xl border border-red-700/40 bg-[#3d0c12]/70 px-5 py-4 shadow-[0_10px_35px_rgba(44,5,15,0.55)]">
       <div className="max-w-[75%]">
         <p className="text-base font-semibold text-white">{track.track_name}</p>
         <p className="text-sm text-slate-400">
@@ -29,7 +29,7 @@ const TrackPreview = ({ track, onRemove }: TrackPreviewProps) => {
           href={track.track_url}
           target="_blank"
           rel="noreferrer"
-          className="text-sm font-medium text-indigo-300 underline hover:text-indigo-200"
+          className="text-sm font-medium text-rose-300 underline hover:text-rose-200"
         >
           Open R2 object
         </a>
