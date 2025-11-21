@@ -44,6 +44,10 @@ const formatDuration = (seconds: number) => {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 };
 
+const isDefaultEvent = (event: { event_name: string; artist_name: string }) =>
+  event.event_name.trim().toLowerCase() === "default" &&
+  event.artist_name.trim().toLowerCase() === "default";
+
 const ManageEventsPage = () => {
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -557,15 +561,19 @@ const cancelEditing = () => {
                       <p className="text-sm text-rose-50/80">
                         {eventRecord.artist_name}
                       </p>
-                      <p className="text-sm text-rose-50/80">
-                        {formatSriLankaDateTime(eventRecord.start_time_utc)} &rarr;{" "}
-                        {formatSriLankaDateTime(eventRecord.end_time_utc)}
-                      </p>
-                      {expiredEventIds.has(eventRecord.event_id) ? (
-                        <span className="mt-2 inline-flex items-center rounded-full border border-amber-500/50 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-200">
-                          Expired
-                        </span>
-                      ) : null}
+                      {isDefaultEvent(eventRecord) ? null : (
+                        <>
+                          <p className="text-sm text-rose-50/80">
+                            {formatSriLankaDateTime(eventRecord.start_time_utc)} &rarr;{" "}
+                            {formatSriLankaDateTime(eventRecord.end_time_utc)}
+                          </p>
+                          {expiredEventIds.has(eventRecord.event_id) ? (
+                            <span className="mt-2 inline-flex items-center rounded-full border border-amber-500/50 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-200">
+                              Expired
+                            </span>
+                          ) : null}
+                        </>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <button

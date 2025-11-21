@@ -7,6 +7,7 @@ import {
   ensureIsoDate,
   ensureTracks,
   findOverlappingEvent,
+  isDefaultEvent,
   persistEvents,
   readEventsFile,
   ValidationError,
@@ -65,10 +66,18 @@ export async function POST(request: Request) {
     };
 
     const existingEvents = await readEventsFile();
+    if (
+      isDefaultEvent(newEvent) &&
+      existingEvents.some((event) => isDefaultEvent(event))
+    ) {
+      throw new ValidationError("A default event already exists.");
+    }
     const conflict = findOverlappingEvent(
       existingEvents,
       newEvent.start_time_utc,
       newEvent.end_time_utc,
+      undefined,
+      newEvent,
     );
     if (conflict) {
       throw new ValidationError(

@@ -5,6 +5,7 @@ import {
   ensureIsoDate,
   ensureTracks,
   findOverlappingEvent,
+  isDefaultEvent,
   persistEvents,
   readEventsFile,
   ValidationError,
@@ -107,6 +108,15 @@ export async function PUT(request: Request, context: RouteParams) {
       }
     }
 
+    if (isDefaultEvent(updatedEvent)) {
+      const otherDefault = events.find(
+        (event) => isDefaultEvent(event) && event.event_id !== updatedEvent.event_id,
+      );
+      if (otherDefault) {
+        throw new ValidationError("A default event already exists.");
+      }
+    }
+
     if (
       new Date(updatedEvent.end_time_utc).getTime() <=
       new Date(updatedEvent.start_time_utc).getTime()
@@ -119,6 +129,7 @@ export async function PUT(request: Request, context: RouteParams) {
       updatedEvent.start_time_utc,
       updatedEvent.end_time_utc,
       updatedEvent.event_id,
+      updatedEvent,
     );
     if (conflict) {
       throw new ValidationError(
