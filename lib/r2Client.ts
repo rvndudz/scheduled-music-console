@@ -72,8 +72,17 @@ const getObjectKeyFromUrl = (url: string): string | null => {
 
   try {
     const parsed = new URL(trimmed);
-    const maybeKey = parsed.pathname.replace(/^\/+/, "");
-    return maybeKey || null;
+    const rawPath = parsed.pathname.replace(/^\/+/, "");
+    if (!rawPath) {
+      return null;
+    }
+
+    const bucketPrefix = `${requireEnv("R2_BUCKET").replace(/\/+$/, "")}/`;
+    if (rawPath.startsWith(bucketPrefix)) {
+      return rawPath.slice(bucketPrefix.length) || null;
+    }
+
+    return decodeURIComponent(rawPath);
   } catch {
     return null;
   }

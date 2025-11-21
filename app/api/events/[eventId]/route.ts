@@ -51,6 +51,8 @@ export async function PUT(request: Request, context: RouteParams) {
 
     const currentEvent = events[index];
     const updatedEvent: EventRecord = { ...currentEvent };
+    const removedAssetUrls: string[] = [];
+    const previousCover = currentEvent.cover_image_url;
 
     if ("event_name" in payload) {
       const eventName = payload.event_name;
@@ -83,7 +85,15 @@ export async function PUT(request: Request, context: RouteParams) {
     }
 
     if ("tracks" in payload) {
-      updatedEvent.tracks = ensureTracks(payload.tracks);
+      const nextTracks = ensureTracks(payload.tracks);
+      const nextTrackIds = new Set(nextTracks.map((track) => track.track_id));
+      const removedTracks = currentEvent.tracks.filter(
+        (track) => !nextTrackIds.has(track.track_id),
+      );
+      if (removedTracks.length) {
+        removedAssetUrls.push(...removedTracks.map((track) => track.track_url));
+      }
+      updatedEvent.tracks = nextTracks;
     }
 
     if ("cover_image_url" in payload) {
@@ -114,6 +124,31 @@ export async function PUT(request: Request, context: RouteParams) {
       throw new ValidationError(
         `Time window overlaps with "${conflict.event_name}" (${formatSriLankaDateTime(conflict.start_time_utc)} - ${formatSriLankaDateTime(conflict.end_time_utc)} SLT).`,
       );
+    }
+
+    if (
+      previousCover &&
+      previousCover !== updatedEvent.cover_image_url &&
+      ("cover_image_url" in payload || !updatedEvent.cover_image_url)
+    ) {
+      removedAssetUrls.push(previousCover);
+    }
+
+    const urlsToDelete = [...new Set(removedAssetUrls)];
+
+    if (urlsToDelete.length) {
+      try {
+        await deleteObjectsForUrls(urlsToDelete);
+      } catch (error) {
+        console.error(
+          `Failed to delete removed assets for event ${eventId}:`,
+          error,
+        );
+        return NextResponse.json(
+          { error: "Unable to delete removed assets from storage." },
+          { status: 502 },
+        );
+      }
     }
 
     events[index] = updatedEvent;
