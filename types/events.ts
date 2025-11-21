@@ -13,6 +13,7 @@ export interface EventRecord {
   artist_name: string;
   start_time_utc: string;
   end_time_utc: string;
+  is_default?: boolean;
   tracks: TrackRecord[];
   cover_image_url?: string;
 }

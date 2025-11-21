@@ -70,12 +70,8 @@ export const ensureTracks = (tracks: unknown): TrackRecord[] => {
   });
 };
 
-export const isDefaultEvent = (event: {
-  event_name: string;
-  artist_name: string;
-}) =>
-  event.event_name.trim().toLowerCase() === "default" &&
-  event.artist_name.trim().toLowerCase() === "default";
+export const isDefaultEvent = (event: { is_default?: boolean }) =>
+  Boolean(event.is_default);
 
 export const readEventsFile = async (): Promise<EventRecord[]> => {
   const raw = await readObjectAsText(EVENTS_OBJECT_KEY);
@@ -83,7 +79,12 @@ export const readEventsFile = async (): Promise<EventRecord[]> => {
     return [];
   }
   const data = JSON.parse(raw);
-  return Array.isArray(data) ? (data as EventRecord[]) : [];
+  return Array.isArray(data)
+    ? (data as EventRecord[]).map((event) => ({
+        ...event,
+        is_default: Boolean((event as EventRecord).is_default),
+      }))
+    : [];
 };
 
 export const persistEvents = async (events: EventRecord[]) => {
@@ -96,7 +97,7 @@ export const findOverlappingEvent = (
   startIso: string,
   endIso: string,
   excludeId?: string,
-  newEventInfo?: { event_name: string; artist_name: string },
+  newEventInfo?: { is_default?: boolean },
 ): EventRecord | null => {
   const newIsDefault = newEventInfo ? isDefaultEvent(newEventInfo) : false;
   const start = new Date(startIso).getTime();

@@ -85,6 +85,14 @@ export async function PUT(request: Request, context: RouteParams) {
       );
     }
 
+    if ("is_default" in payload) {
+      const isDefault = payload.is_default;
+      if (typeof isDefault !== "boolean") {
+        throw new ValidationError("is_default must be a boolean if provided.");
+      }
+      updatedEvent.is_default = isDefault;
+    }
+
     if ("tracks" in payload) {
       const nextTracks = ensureTracks(payload.tracks);
       const nextTrackIds = new Set(nextTracks.map((track) => track.track_id));

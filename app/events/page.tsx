@@ -22,6 +22,7 @@ type FormState = {
   event_name: string;
   artist_name: string;
   start_time_utc: string;
+  is_default: boolean;
 };
 
 type StatusMessage = {
@@ -33,6 +34,7 @@ const initialFormState: FormState = {
   event_name: "",
   artist_name: "",
   start_time_utc: "",
+  is_default: false,
 };
 
 const fieldClasses =
@@ -44,9 +46,8 @@ const formatDuration = (seconds: number) => {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 };
 
-const isDefaultEvent = (event: { event_name: string; artist_name: string }) =>
-  event.event_name.trim().toLowerCase() === "default" &&
-  event.artist_name.trim().toLowerCase() === "default";
+const isDefaultEvent = (event: { is_default?: boolean }) =>
+  Boolean(event.is_default);
 
 const ManageEventsPage = () => {
   const [events, setEvents] = useState<EventRecord[]>([]);
@@ -98,6 +99,7 @@ const ManageEventsPage = () => {
       event_name: event.event_name,
       artist_name: event.artist_name,
       start_time_utc: toSriLankaInputValue(event.start_time_utc),
+      is_default: Boolean(event.is_default),
     });
     setFormTracks(event.tracks);
     setCoverPreview(event.cover_image_url ?? null);
@@ -117,8 +119,11 @@ const cancelEditing = () => {
 };
 
   const handleFormChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setFormValues((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = event.target;
+    setFormValues((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const uploadTracksNow = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -284,6 +289,7 @@ const cancelEditing = () => {
         artist_name: formValues.artist_name.trim(),
         start_time_utc: startUtc,
         end_time_utc: endUtc,
+        is_default: Boolean(formValues.is_default),
         tracks: formTracks,
         ...(coverUrl ? { cover_image_url: coverUrl } : {}),
       };
@@ -447,7 +453,9 @@ const cancelEditing = () => {
     return new Set(
       events
         .filter(
-          (event) => new Date(event.end_time_utc).getTime() <= now,
+          (event) =>
+            !isDefaultEvent(event) &&
+            new Date(event.end_time_utc).getTime() <= now,
         )
         .map((event) => event.event_id),
     );
@@ -684,6 +692,22 @@ const cancelEditing = () => {
                   onChange={handleFormChange}
                   required
                 />
+              </div>
+              <div className="flex items-center gap-3 pt-6">
+                <input
+                  id="is_default"
+                  name="is_default"
+                  type="checkbox"
+                  className="h-5 w-5 cursor-pointer rounded border border-red-700/60 bg-[#3d0c12]/70 text-rose-400 focus:ring-2 focus:ring-rose-500/50"
+                  checked={formValues.is_default}
+                  onChange={handleFormChange}
+                />
+                <label
+                  htmlFor="is_default"
+                  className="text-sm font-semibold text-slate-300"
+                >
+                  Mark as default event (plays when nothing else is scheduled)
+                </label>
               </div>
               <div className="rounded-2xl border border-[#ff9fb0]/50 bg-white/5 p-4 text-sm text-[#ffd6d6]">
                 <p className="font-semibold text-white">

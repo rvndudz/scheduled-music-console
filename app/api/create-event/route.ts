@@ -31,6 +31,7 @@ export async function POST(request: Request) {
       end_time_utc,
       tracks,
       cover_image_url,
+      is_default,
     } = payload;
 
     if (typeof event_name !== "string" || !event_name.trim()) {
@@ -50,6 +51,10 @@ export async function POST(request: Request) {
 
     const normalizedTracks = ensureTracks(tracks);
 
+    if (is_default !== undefined && typeof is_default !== "boolean") {
+      throw new ValidationError("is_default must be a boolean if provided.");
+    }
+
     let coverUrl: string | undefined;
     if (typeof cover_image_url === "string" && cover_image_url.trim()) {
       coverUrl = cover_image_url.trim();
@@ -61,6 +66,7 @@ export async function POST(request: Request) {
       artist_name: artist_name.trim(),
       start_time_utc: startIso,
       end_time_utc: endIso,
+      is_default: Boolean(is_default),
       tracks: normalizedTracks,
       ...(coverUrl ? { cover_image_url: coverUrl } : {}),
     };

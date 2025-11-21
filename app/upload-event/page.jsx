@@ -15,6 +15,7 @@ const initialFormState = {
   event_name: "",
   artist_name: "",
   start_time_utc: "",
+  is_default: false,
 };
 
 const fieldClasses =
@@ -67,8 +68,11 @@ export default function UploadEventPage() {
   }, [coverPreview]);
 
   const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setFormValues((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = event.target;
+    setFormValues((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
 const resetForm = () => {
@@ -270,6 +274,7 @@ const resetForm = () => {
           artist_name: formValues.artist_name.trim(),
           start_time_utc: startUtc,
           end_time_utc: endUtc,
+          is_default: Boolean(formValues.is_default),
           tracks,
           ...(coverImageUrl ? { cover_image_url: coverImageUrl } : {}),
         }),
@@ -355,18 +360,32 @@ const resetForm = () => {
                 required
               />
             </div>
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-[#ffd6d6]">
-                Start time (Sri Lanka time)
-              </label>
-              <input
-                className={fieldClasses}
-                type="datetime-local"
-                name="start_time_utc"
-                value={formValues.start_time_utc}
-                onChange={handleInputChange}
-                required
-              />
+            <div className="sm:col-span-2">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+                <div className="flex-1">
+                  <label className="mb-1 block text-sm font-semibold text-[#ffd6d6]">
+                    Start time (Sri Lanka time)
+                  </label>
+                  <input
+                    className={fieldClasses}
+                    type="datetime-local"
+                    name="start_time_utc"
+                    value={formValues.start_time_utc}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <label className="flex items-center gap-3 rounded-2xl border border-red-700/60 bg-[#3d0c12]/70 px-4 py-3 text-sm font-semibold text-[#ffd6d6] shadow-sm">
+                  <input
+                    type="checkbox"
+                    name="is_default"
+                    checked={formValues.is_default}
+                    onChange={handleInputChange}
+                    className="h-5 w-5 cursor-pointer rounded border border-red-700/60 bg-[#3d0c12]/90 text-rose-400 focus:ring-2 focus:ring-rose-500/50"
+                  />
+                  Default event (plays when nothing else is scheduled)
+                </label>
+              </div>
             </div>
           </section>
 
@@ -515,26 +534,32 @@ const resetForm = () => {
           </span>
         </div>
         <div className="space-y-2">
-              {scheduledList.length ? (
-                scheduledList.map((event) => (
-                  <div
-                    key={event.event_id}
-                    className="rounded-xl border border-[#ff4a4a]/20 bg-[#2b050c]/60 px-3 py-2"
-                  >
-                    <p className="text-sm font-semibold text-white">
-                      {event.event_name} — {event.artist_name}
-                    </p>
-                    <p className="text-xs text-[#ffd6d6]">
-                      {formatSriLankaDateTime(event.start_time_utc)} –{" "}
-                      {formatSriLankaDateTime(event.end_time_utc)}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-[#ffd6d6]">
-                  No events scheduled yet. Create one to see it here.
+          {scheduledList.length ? (
+            scheduledList.map((event) => (
+              <div
+                key={event.event_id}
+                className="rounded-xl border border-[#ff4a4a]/20 bg-[#2b050c]/60 px-3 py-2"
+              >
+                <p className="text-sm font-semibold text-white">
+                  {event.event_name} — {event.artist_name}
                 </p>
-              )}
+                {event.is_default ? (
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-200">
+                    Default event — plays when nothing else is scheduled
+                  </p>
+                ) : (
+                  <p className="text-xs text-[#ffd6d6]">
+                    {formatSriLankaDateTime(event.start_time_utc)} —{" "}
+                    {formatSriLankaDateTime(event.end_time_utc)}
+                  </p>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-[#ffd6d6]">
+              No events scheduled yet. Create one to see it here.
+            </p>
+          )}
         </div>
       </section>
     </main>

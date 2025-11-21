@@ -9,8 +9,12 @@ export async function DELETE() {
   try {
     const events = await readEventsFile();
     const now = new Date();
-    const expiredEvents = events.filter((event) => isEventExpired(event, now));
-    const activeEvents = events.filter((event) => !isEventExpired(event, now));
+    const expiredEvents = events.filter(
+      (event) => !event.is_default && isEventExpired(event, now),
+    );
+    const activeEvents = events.filter(
+      (event) => event.is_default || !isEventExpired(event, now),
+    );
     const deleted = events.length - activeEvents.length;
 
     if (deleted === 0) {

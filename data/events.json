@@ -5,6 +5,7 @@
     "artist_name": "test",
     "start_time_utc": "2025-11-20T06:00:00+00:00",
     "end_time_utc": "2025-11-20T07:00:00+00:00",
+    "is_default": false,
     "tracks": [
       {
         "track_id": "526a3563-2d89-4cc6-abce-7985c0cad8cf",
