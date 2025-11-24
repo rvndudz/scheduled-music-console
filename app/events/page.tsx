@@ -53,6 +53,8 @@ const ManageEventsPage = () => {
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [status, setStatus] = useState<StatusMessage | null>(null);
+  const [userCounts, setUserCounts] = useState<Record<string, number>>({});
+  const [isCountsLoading, setIsCountsLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<FormState>(initialFormState);
   const [formTracks, setFormTracks] = useState<EventRecord["tracks"]>([]);
@@ -92,6 +94,58 @@ const ManageEventsPage = () => {
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
+
+  useEffect(() => {
+    let active = true;
+    const loadCounts = async () => {
+      if (!events.length) {
+        if (active) setUserCounts({});
+        return;
+      }
+      if (active) setIsCountsLoading(true);
+      try {
+        const results = await Promise.all(
+          events.map(async (event) => {
+            try {
+              const res = await fetch(
+                `https://event-user-count.rvndudz77.workers.dev/events/${event.event_id}/counts`,
+                { cache: "no-store" },
+              );
+              const json = await res.json();
+              if (!res.ok) {
+                throw new Error("Request failed");
+              }
+              const count =
+                typeof json.count === "number"
+                  ? json.count
+                  : typeof json.counts === "number"
+                    ? json.counts
+                    : null;
+              return [event.event_id, count] as const;
+            } catch {
+              return [event.event_id, null] as const;
+            }
+          }),
+        );
+        if (!active) return;
+        const next: Record<string, number> = {};
+        results.forEach(([id, count]) => {
+          if (typeof count === "number" && count >= 0) {
+            next[id] = count;
+          }
+        });
+        setUserCounts(next);
+      } finally {
+        if (active) setIsCountsLoading(false);
+      }
+    };
+    loadCounts();
+    const interval = setInterval(loadCounts, 15000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [events]);
 
   const startEditing = (event: EventRecord) => {
     setEditingId(event.event_id);
@@ -568,6 +622,14 @@ const cancelEditing = () => {
                       </h3>
                       <p className="text-sm text-rose-50/80">
                         {eventRecord.artist_name}
+                      </p>
+                      <p className="text-xs text-emerald-200/90">
+                        User Count:{" "}
+                        {userCounts[eventRecord.event_id] !== undefined
+                          ? userCounts[eventRecord.event_id]
+                          : isCountsLoading
+                            ? "Loading..."
+                            : "—"}
                       </p>
                       {isDefaultEvent(eventRecord) ? (
                         <p className="text-xs font-semibold uppercase tracking-wide text-amber-200">
