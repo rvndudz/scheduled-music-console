@@ -576,7 +576,7 @@ const cancelEditing = () => {
           </button>
           <button
             className="rounded-2xl border border-emerald-500/50 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-70"
-            onClick={fetchUserCounts}
+            onClick={() => fetchUserCounts()}
             disabled={isLoading || isCountsLoadingAll || events.length === 0}
             title="Refresh listener counts"
           >
@@ -658,7 +658,7 @@ const cancelEditing = () => {
                         <button
                           type="button"
                           className="rounded-full border border-emerald-400/60 bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-100 transition hover:bg-emerald-500/20 disabled:opacity-60"
-                          onClick={fetchUserCounts}
+                          onClick={() => fetchUserCounts(eventRecord.event_id)}
                           disabled={
                             isCountsLoadingAll ||
                             countLoadingId === eventRecord.event_id
